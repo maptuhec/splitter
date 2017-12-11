@@ -7,6 +7,9 @@ contract Splitter {
 
     mapping (address => uint ) public balances;
 
+    event LogSplitting(address sender, uint amountToSplit);
+    event LogKillContract(address sender);
+
     function Splitter(address addressBob, address addressCarol) public {
         owner = msg.sender;
         bob = addressBob;
@@ -27,12 +30,13 @@ contract Splitter {
 		balances[owner] += remainder;
 		balances[bob] += splittedValue;
 		balances[carol] += splittedValue;
+
+		LogSplitting(owner, msg.value);
     }
 
-    function killSwitch() public returns(bool) {
+    function killSwitch() public {
         require(msg.sender == owner);
+        LogKillContract(owner);
         selfdestruct(owner);
-        return true;
-
     }
 }

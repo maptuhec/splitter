@@ -1,4 +1,6 @@
 var Splitter = artifacts.require("./Splitter.sol")
+const util = require('./utils');
+const expectThrow = util.expectThrow;
 
 contract('Splitter', function(accounts) {
 
@@ -15,11 +17,10 @@ contract('Splitter', function(accounts) {
     });
   });
 
-  it("should be owned by owner" , function() {
-    var owner = accounts[0];
-    return contract.owner({from: owner}).then(function(_owner) {
+  it("should be owned by owner" , async function() {
+    let _owner = await contract.owner({from: owner});
       assert.strictEqual(_owner, owner, "contract is not owned by owner");
-    });
+    
   });
 
   it("should get balance", function() {
@@ -67,5 +68,47 @@ contract('Splitter', function(accounts) {
       assert.equal(!!killed, true, "Contract not killed properly");
     });
   });
+
+  it("should throw if the sender is not the owner", async function() {
+    await expectThrow(contract.splitValue({from: accounts[4], value: valueSend }));
+  });
+
+  it("should throw if the msg value is zero", async function() {
+    await expectThrow(contract.splitValue({from: owner, value: 0 }));
+  });
+
+  it("should throw and not kill the contract if sender is not the owner", async function() {
+    await expectThrow(contract.killSwitch({from: accounts[4]}));
+  });
+
+  it("should emit event on splitting with value", async function() {
+    const expectedEvent = 'LogSplitting';
+    let result = await contract.splitValue({
+      from: owner,
+      value: valueSend
+    });
+    assert.lengthOf(result.logs, 1, "There should be 1 event emitted from splitting!");
+    assert.strictEqual(result.logs[0].event, expectedEvent, `The event emitted was ${result.logs[0].event} instead of ${expectedEvent}`);
+  })
+
+  it("should emit event on splitting with odd value", async function() {
+    const expectedEvent = 'LogSplitting';
+    let result = await contract.splitValue({
+      from: owner,
+      value: oddValueSend
+    });
+    assert.lengthOf(result.logs, 1, "There should be 1 event emitted from the splitting!");
+    assert.strictEqual(result.logs[0].event, expectedEvent, `The event emitted was ${result.logs[0].event} instead of ${expectedEvent}`);
+  })
+
+  it("should emit event on kiling the contract", async function() {
+    const expectedEvent = 'LogKillContract';
+    let result = await contract.killSwitch({
+      from: owner
+    });
+
+    assert.lengthOf(result.logs, 1, "There should be 1 event emitted from killing the contract!");
+    assert.strictEqual(result.logs[0].event, expectedEvent, `The event emitted was ${result.logs[0].event} instead of ${expectedEvent}`);
+  })
 
   });
