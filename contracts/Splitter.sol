@@ -1,6 +1,8 @@
 pragma solidity ^0.4.18;
 contract Splitter {
 
+  //TODO: Add modifier for onlyOwner
+
     address public owner;
     address public bob;
     address public carol;
@@ -9,6 +11,7 @@ contract Splitter {
 
     event LogSplitting(address sender, uint amountToSplit);
     event LogKillContract(address sender);
+    event LogWithdraw(address person);
 
     function Splitter(address addressBob, address addressCarol) public {
         owner = msg.sender;
@@ -38,5 +41,12 @@ contract Splitter {
         require(msg.sender == owner);
         LogKillContract(owner);
         selfdestruct(owner);
+    }
+
+    function withdraw(address person) public {
+        require(balances[person] > 0);
+        person.transfer(balances[person]);
+        balances[person] = 0;
+        LogWithdraw(person);
     }
 }
