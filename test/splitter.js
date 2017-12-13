@@ -109,9 +109,9 @@ contract('Splitter', function(accounts) {
 
   it("should emit event on withdraw", async function() {
     await contract.splitValue({from: owner, value:oddValueSend});
-    const balanceOwner = await contract.balances(owner);
+    const balanceBob = await contract.balances(bob);
     const expectedEvent = 'LogWithdraw';
-    let result = await contract.withdraw(accounts[0],{
+    let result = await contract.withdraw(bob,{
       from: owner
     });
 

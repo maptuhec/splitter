@@ -44,9 +44,10 @@ contract Splitter {
     }
 
     function withdraw(address person) public {
-        require(balances[person] > 0);
-        person.transfer(balances[person]);
-        balances[person] = 0;
-        LogWithdraw(person);
+    require(balances[person] > 0);
+   uint valueToWithdraw = balances[person];
+   balances[person] = 0;
+   person.transfer(valueToWithdraw);
+   LogWithdraw(person); 
     }
 }
