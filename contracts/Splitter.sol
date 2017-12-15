@@ -1,13 +1,16 @@
 pragma solidity ^0.4.18;
 contract Splitter {
 
-  //TODO: Add modifier for onlyOwner
-
     address public owner;
     address public bob;
     address public carol;
 
     mapping (address => uint ) public balances;
+
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+    }
 
     event LogSplitting(address sender, uint amountToSplit);
     event LogKillContract(address sender);
@@ -23,12 +26,11 @@ contract Splitter {
         return balances[person];
     }
 
-    function splitValue() payable public {
-        require(msg.sender == owner);
+    function splitValue() onlyOwner payable public {
         require(msg.value != 0);
 
         uint splittedValue = msg.value / 2;
-		uint remainder = msg.value - (splittedValue * 2);
+		uint remainder = msg.value % 2;
 
 		balances[owner] += remainder;
 		balances[bob] += splittedValue;
@@ -37,17 +39,17 @@ contract Splitter {
 		LogSplitting(owner, msg.value);
     }
 
-    function killSwitch() public {
-        require(msg.sender == owner);
+    function killSwitch() onlyOwner public {
         LogKillContract(owner);
         selfdestruct(owner);
     }
 
-    function withdraw(address person) public {
-    require(balances[person] > 0);
-   uint valueToWithdraw = balances[person];
-   balances[person] = 0;
-   person.transfer(valueToWithdraw);
-   LogWithdraw(person); 
+    function withdraw() public {
+        require(balances[msg.sender] > 0);
+        uint valueToWithdraw = balances[msg.sender];
+        balances[msg.sender] = 0;
+        msg.sender.transfer(valueToWithdraw);
+        
+        LogWithdraw(msg.sender);
     }
 }
